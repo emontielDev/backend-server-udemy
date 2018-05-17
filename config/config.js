@@ -1,0 +1,1 @@
+module.exports.SEED = 'k3YAuth0rre';
