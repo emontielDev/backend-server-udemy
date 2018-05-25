@@ -9,7 +9,13 @@ var mdAutenticacion = require('../middlewares/autenticacion');
 
 // Obtener todos los usuarios
 app.get('/', (req, res, next) => {
+
+    var offset = req.query.offset || 0;
+    offset = Number(offset);
+
     Usuario.find({}, 'nombre email img role')
+        .limit(5)
+        .skip(offset)
         .exec(
             (err, usuarios) => {
                 if (err) {
@@ -20,9 +26,13 @@ app.get('/', (req, res, next) => {
                     });
                 }
 
-                res.status(200).json({
-                    ok: true,
-                    usuarios: usuarios
+                Usuario.count({}, (err, count) => {
+                    res.status(200).json({
+                        ok: true,
+                        total: count,
+                        usuarios: usuarios
+                    });
+
                 });
             });
 });
@@ -56,7 +66,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res, next) => {
 });
 
 // Actualizar usuario
-app.put('/:id', (req, res) => {
+app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
     var body = req.body;
 
@@ -98,7 +108,7 @@ app.put('/:id', (req, res) => {
 });
 
 // Borrar un usuario por id
-app.delete('/:id', (req, res) => {
+app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
 
     Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
