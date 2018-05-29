@@ -57,7 +57,7 @@ app.post('/', (req, res) => {
 });
 
 app.post('/google', async(req, res) => {
-    var token = req.headers.authorization;
+    var token = req.body.token;
 
     var googleAuthentication = await verify(token)
         .catch(e => {
@@ -81,8 +81,8 @@ app.post('/google', async(req, res) => {
             if (!usuario.google) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'Debe de usar la autenticación normal',
-                    errors: e
+                    mensaje: "Problema de autenticación",
+                    errors: [`Ya existe un usuario con el correo ${googleAuthentication.email} registrado con otro metodo de autenticación.`, ]
                 });
             } else {
                 var token = jwt.sign({ usuario: usuario }, SEED, { expiresIn: 14400 })
