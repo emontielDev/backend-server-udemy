@@ -81,7 +81,7 @@ function subirPorTipo(tipo, id, path, res) {
         default:
             return;
     }
-    tipoColeccion.findById(id, 'nombre img')
+    tipoColeccion.findById(id) // , 'nombre img'
         .exec(
             (err, resultado) => {
                 if (!resultado) {

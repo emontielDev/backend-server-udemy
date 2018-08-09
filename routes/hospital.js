@@ -9,12 +9,32 @@ app.get('/', (req, res) => {
     var offset = req.query.offset || 0;
     offset = Number(offset);
 
-    Hospital.find({}, 'nombre img usuario')
-        .populate('usuario', 'nombre email')
-        .limit(5)
-        .skip(offset)
-        .exec(
-            (err, hospitales) => {
+    if (offset > 0) {
+        Hospital.find({}, 'nombre img usuario')
+            .populate('usuario', 'nombre email')
+            .limit(5)
+            .skip(offset)
+            .exec(
+                (err, hospitales) => {
+                    if (err) {
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: 'Error al cargar hospitales',
+                            errors: err
+                        });
+                    }
+
+                    Hospital.count({}, (err, count) => {
+                        res.status(200).json({
+                            ok: true,
+                            hospitales: hospitales,
+                            total: count
+                        });
+                    });
+                });
+    } else {
+        Hospital
+            .find({}, '_id nombre img', (err, hospitales) => {
                 if (err) {
                     return res.status(500).json({
                         ok: false,
@@ -23,14 +43,42 @@ app.get('/', (req, res) => {
                     });
                 }
 
-                Hospital.count({}, (err, count) => {
-                    res.status(200).json({
-                        ok: true,
-                        hospitales: hospitales,
-                        total: count
-                    });
+                res.status(200).json({
+                    ok: true,
+                    hospitales
                 });
+            })
+            .sort('nombre');
+    }
+});
+
+// Obtener hospital por id
+app.get('/:id', (req, res) => {
+    var id = req.params.id;
+
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec((err, hospital) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al obtener el hospital',
+                    errors: err
+                });
+            }
+
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El hospital con el id ' + id + ' no existe.',
+                });
+            }
+
+            return res.status(200).json({
+                ok: true,
+                hospital: hospital
             });
+        });
 });
 
 //Crear hospital

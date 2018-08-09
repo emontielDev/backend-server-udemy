@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 // Enable CORs
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, x-authentication-token, Content-Type, Accept");
     res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
     next();
 });
@@ -29,7 +29,7 @@ var hospitalRoutes = require('./routes/hospital');
 var usuarioRoutes = require('./routes/usuario');
 var medicoRoutes = require('./routes/medico');
 var loginRoutes = require('./routes/login');
-var busquedaRoutes = require('./routes/upload');
+var busquedaRoutes = require('./routes/busqueda');
 var uploadRoutes = require('./routes/upload');
 var imagenesRoutes = require('./routes/imagenes');
 

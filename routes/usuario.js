@@ -13,7 +13,7 @@ app.get('/', (req, res, next) => {
     var offset = req.query.offset || 0;
     offset = Number(offset);
 
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
         .limit(5)
         .skip(offset)
         .exec(
@@ -66,7 +66,7 @@ app.post('/', (req, res, next) => {
 });
 
 // Actualizar usuario
-app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRoleOrUser], (req, res) => {
     var id = req.params.id;
     var body = req.body;
 
@@ -87,7 +87,48 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         }
 
         usuario.nombre = body.nombre;
-        usuario.email = body.email;
+        if (!usuario.google) {
+            usuario.email = body.email;
+        }
+        // usuario.role = body.role;
+
+        usuario.save((err, usuarioActualizado) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Error al actualizar el usuario',
+                    errors: err
+                });
+            }
+            usuario.password = null;
+            res.status(200).json({
+                ok: true,
+                usuario: usuarioActualizado
+            });
+        });
+    });
+});
+
+app.put('/:id/role', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRoleOrUser], (req, res) => {
+    var id = req.params.id;
+    var body = req.body;
+
+    Usuario.findById(id, (err, usuario) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'Error al buscar el usuario',
+                errors: err
+            });
+        }
+
+        if (!usuario) {
+            return res.status(404).json({
+                ok: false,
+                mensaje: 'El usuario con el id ' + id + ' no existe.',
+            });
+        }
+
         usuario.role = body.role;
 
         usuario.save((err, usuarioActualizado) => {
@@ -108,7 +149,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 });
 
 // Borrar un usuario por id
-app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRole], (req, res) => {
     var id = req.params.id;
 
     Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
